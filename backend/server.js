@@ -7,6 +7,7 @@ import userRoutes from "./routes/userRoutes.js";
 import connectMongoDB from "./db/connectMongoDB.js";
 import cookieParser from "cookie-parser";
 import {v2 as cloudinary} from "cloudinary";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 dotenv.config();
@@ -27,6 +28,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 
 app.use("/api/posts", postRoutes);
+
+app.use("/api/notifications", notificationRoutes);
 
 
 app.listen(PORT, () => {

@@ -41,12 +41,14 @@ export const Posts = ({feedType}) => {
 			)}
 			{!isLoading && posts?.length === 0 && <p className='text-center my-4'>No posts in this tab. Switch 👻</p>}
 			{!isLoading
-				&& posts 
-				&& posts.map((post) => (<div key={post._id}>
-							<Post  post={post}/>
-						</div>))}
+				&& posts
+				&& posts.map((post) => (
+					<div key={post._id}>
+						<Post post={post}/>
+					</div>
+				))}
 
 
-						< />
-				);
-			};
+		< />
+	);
+};

@@ -1,36 +1,70 @@
-import { FaRegComment } from "react-icons/fa";
-import { BiRepost } from "react-icons/bi";
-import { FaRegHeart } from "react-icons/fa";
-import { FaRegBookmark } from "react-icons/fa6";
-import { FaTrash } from "react-icons/fa";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import {FaRegComment} from "react-icons/fa";
+import {BiRepost} from "react-icons/bi";
+import {FaRegHeart} from "react-icons/fa";
+import {FaRegBookmark} from "react-icons/fa6";
+import {FaTrash} from "react-icons/fa";
+import {useState} from "react";
+import {Link} from "react-router-dom";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import LoadingSpinner from "./LoadingSpinner.jsx";
 
-const Post = ({ post }) => {
+const Post = ({post}) => {
+	//getting user who logged in (authorised user)
+	const {data: authUser} = useQuery({
+		queryKey: ["authUser"],
+	})
+	const queryClient = useQueryClient();
 	const [comment, setComment] = useState("");
 	const postOwner = post.user;
 	const isLiked = false;
 
-	const isMyPost = true;
+	//check if post belongs to authorised user
+	const isMyPost = post?.user._id === authUser?._id;
 
 	const formattedDate = "1h";
 
 	const isCommenting = false;
 
-	const handleDeletePost = () => {};
+	const {mutate: deletePost, isPending} = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await fetch(`api/posts/${post._id}`, {
+					method: "DELETE",
+					headers: {
+						"Content-Type": "application/json",
+					}
+				})
+				const data = await res.json()
+				if (!res.ok) {
+					throw new Error(data.error || "Can't delete post")
+				}
+				return data
+			} catch (err) {
+				throw new Error(err)
+			}
+		},
+		onSuccess: (data) => {
+			queryClient.invalidateQueries({queryKey: ["posts"]})
+		}
+	})
+
+	const handleDeletePost = () => {
+		deletePost()
+	};
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
 	};
 
-	const handleLikePost = () => {};
+	const handleLikePost = () => {
+	};
 
 	return (
 		<>
 			<div className='flex gap-2 items-start p-4 border-b border-gray-700'>
 				<div className='avatar'>
 					<Link to={`/profile/${postOwner.username}`} className='w-8 rounded-full overflow-hidden'>
-						<img src={postOwner.profileImg || "/avatar-placeholder.png"} />
+						<img src={postOwner.profileImg || "/avatar-placeholder.png"}/>
 					</Link>
 				</div>
 				<div className='flex flex-col flex-1'>
@@ -45,7 +79,9 @@ const Post = ({ post }) => {
 						</span>
 						{isMyPost && (
 							<span className='flex justify-end flex-1'>
-								<FaTrash className='cursor-pointer hover:text-red-500' onClick={handleDeletePost} />
+								{!isPending &&
+									<FaTrash className='cursor-pointer hover:text-red-500' onClick={handleDeletePost}/>}
+								{isPending && <LoadingSpinner size={"sm"}/>}
 							</span>
 						)}
 					</div>
@@ -65,7 +101,7 @@ const Post = ({ post }) => {
 								className='flex gap-1 items-center cursor-pointer group'
 								onClick={() => document.getElementById("comments_modal" + post._id).showModal()}
 							>
-								<FaRegComment className='w-4 h-4  text-slate-500 group-hover:text-sky-400' />
+								<FaRegComment className='w-4 h-4  text-slate-500 group-hover:text-sky-400'/>
 								<span className='text-sm text-slate-500 group-hover:text-sky-400'>
 									{post.comments.length}
 								</span>
@@ -125,14 +161,15 @@ const Post = ({ post }) => {
 								</form>
 							</dialog>
 							<div className='flex gap-1 items-center group cursor-pointer'>
-								<BiRepost className='w-6 h-6  text-slate-500 group-hover:text-green-500' />
+								<BiRepost className='w-6 h-6  text-slate-500 group-hover:text-green-500'/>
 								<span className='text-sm text-slate-500 group-hover:text-green-500'>0</span>
 							</div>
 							<div className='flex gap-1 items-center group cursor-pointer' onClick={handleLikePost}>
 								{!isLiked && (
-									<FaRegHeart className='w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500' />
+									<FaRegHeart
+										className='w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500'/>
 								)}
-								{isLiked && <FaRegHeart className='w-4 h-4 cursor-pointer text-pink-500 ' />}
+								{isLiked && <FaRegHeart className='w-4 h-4 cursor-pointer text-pink-500 '/>}
 
 								<span
 									className={`text-sm text-slate-500 group-hover:text-pink-500 ${
@@ -144,7 +181,7 @@ const Post = ({ post }) => {
 							</div>
 						</div>
 						<div className='flex w-1/3 justify-end gap-2 items-center'>
-							<FaRegBookmark className='w-4 h-4 text-slate-500 cursor-pointer' />
+							<FaRegBookmark className='w-4 h-4 text-slate-500 cursor-pointer'/>
 						</div>
 					</div>
 				</div>

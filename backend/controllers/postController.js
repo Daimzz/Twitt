@@ -128,7 +128,7 @@ export const getAllPosts = async (req, res) => {
 		if (posts.length === 0) {
 			return res.status(200).json([])
 		}
-		res.status(200).json({posts})
+		res.status(200).json(posts)
 	} catch (err) {
 		console.log('error in getAllPosts: ', err.message)
 		res.status(500).json({error: 'Internal server error'})
@@ -150,7 +150,7 @@ export const getLikedPosts = async (req, res) => {
 			select: '-password'
 		})
 
-		res.status(200).json({likedPosts})
+		res.status(200).json(likedPosts)
 	} catch (err) {
 		console.log('error in getLikedPosts: ', err.message)
 		res.status(500).json({error: 'Internal server error'})
@@ -173,7 +173,7 @@ export const getFollowingPosts = async (req, res) => {
 			select: '-password'
 		})
 
-		res.status(200).json({feedPosts})
+		res.status(200).json(feedPosts)
 	} catch (err) {
 		console.log('error in getFollowingPosts: ', err.message)
 		res.status(500).json({error: 'Internal server error'})
@@ -194,7 +194,7 @@ export const getUserPosts = async(req,res) => {
 			path: 'comments.user',
 			select: '-password'
 		})
-		res.status(200).json({posts})
+		res.status(200).json(posts)
 	} catch (err) {
 		console.log('error in getUserPosts: ', err.message)
 		res.status(500).json({error: 'Internal server error'})

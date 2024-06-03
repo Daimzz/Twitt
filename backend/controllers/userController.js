@@ -89,7 +89,7 @@ export const getSuggestedUsers = async (req, res) => {
 		const filteredUsers = users.filter(user => !usersFollowedByMe.following.includes(user._id))
 		const suggestedUsers = filteredUsers.slice(0, 4)
 		suggestedUsers.forEach(user => user.password = null)
-		return res.status(200).json({suggestedUsers})
+		return res.status(200).json(suggestedUsers)
 	} catch (err) {
 		console.log('error in getSuggestedUsers', err.message)
 		res.status(500).json({message: err.message})

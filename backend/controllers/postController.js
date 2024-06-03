@@ -13,19 +13,17 @@ export const createPost = async (req, res) => {
 			return res.status(404).json({message: 'User not found'})
 		}
 		if (!text && !img) {
-			return res.status(400).json({message: 'Please provide text or image'})
+		return res.status(400).json({message: 'Please provide text or image'})
 		}
 
 		if (img) {
 			const uploadedResponse = await cloudinary.uploader.upload(img)
 			img = uploadedResponse.secure_url
-			const imageId = img.split('/').pop().split('.')[0]
-			await cloudinary.uploader.destroy(imageId)
 		}
 
 		const newPost = new Post({text, img, user: userId})
 		await newPost.save()
-		res.status(200).json({message: 'Post created successfully'})
+		res.status(201).json({message: 'Post created successfully'})
 	} catch (err) {
 		console.log('error in createPost: ', err.message)
 		res.status(500).json({error: 'Internal server error'})
@@ -42,8 +40,8 @@ export const deletePost = async (req, res) => {
 			return res.status(401).json({message: 'Unauthorized'})
 		}
 		if (post.img) {
-			const imageId = post.img.split('/').pop().split('.')[0]
-			await cloudinary.uploader.destroy(imageId)
+			const imgId = post.img.split('/').pop().split('.')[0]
+			await cloudinary.uploader.destroy(imgId)
 		}
 		await Post.findByIdAndDelete(req.params.id)
 		res.status(200).json({message: 'Post deleted successfully'})

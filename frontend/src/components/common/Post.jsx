@@ -7,7 +7,7 @@ import {useState} from "react";
 import {Link} from "react-router-dom";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import LoadingSpinner from "./LoadingSpinner.jsx";
-import toast from "react-hot-toast";
+import {formatPostDate} from "../../utils/date/index.js";
 
 const Post = ({post}) => {
 	//getting user who logged in (authorised user)
@@ -18,7 +18,10 @@ const Post = ({post}) => {
 	const [comment, setComment] = useState("");
 	const postOwner = post.user;
 	const isLiked = post.likes.includes(authUser?._id)
-	const {mutate:likePost, isPending:isLiking} = useMutation({
+	const isMyPost = post?.user._id === authUser?._id;
+	const formattedDate = formatPostDate(post.createdAt);
+
+	const {mutate: likePost, isPending: isLiking} = useMutation({
 		mutationFn: async () => {
 			try {
 				const res = await fetch(`/api/posts/like/${post._id}`, {
@@ -39,7 +42,7 @@ const Post = ({post}) => {
 			queryClient.invalidateQueries({queryKey: ["posts"]})
 			//instead we will  update the cache directly for that post
 			queryClient.setQueryData(["post"], (oldData) => {
-				return oldData?.map( p => {
+				return oldData?.map(p => {
 					if (p._id === post._id) {
 						return {...p, likes: updatedLikes}
 					}
@@ -49,18 +52,12 @@ const Post = ({post}) => {
 		},
 		onError: (error) => {
 			console.log(error)
-			toast.error(error.message)
+
 		}
 	})
 
-	//check if post belongs to authorised user
-	const isMyPost = post?.user._id === authUser?._id;
+	const {mutate: deletePost, isPending: isDeleting} = useMutation({
 
-	const formattedDate = "1h";
-
-	const isCommenting = true;
-
-	const {mutate: deletePost, isPending:isDeleting} = useMutation({
 		mutationFn: async () => {
 			try {
 				const res = await fetch(`api/posts/${post._id}`, {
@@ -83,16 +80,54 @@ const Post = ({post}) => {
 		}
 	})
 
+	const {mutate: commentPost, isPending: isCommenting} = useMutation({
+			mutationFn: async () => {
+				try {
+					const res = await fetch(`/api/posts/comment/${post._id}`, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({text:comment}),
+					})
+					const data = await res.json()
+					if (!res.ok) {
+						throw new Error(data.error || "Can't comment post")
+					}
+					return data
+				} catch (err) {
+					throw new Error(err)
+				}
+			},
+			onSuccess: () => {
+				setComment("")
+				queryClient.invalidateQueries({queryKey: ["posts"]})
+			},
+			onError: (error) => {
+				console.log(error)
+
+			}
+		}
+	)
+	//check if post belongs to authorised user
+
+
+
 	const handleDeletePost = () => {
 		deletePost()
 	};
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
+		if(isCommenting) return
+		commentPost()
+		//close modal after comment
+		document.getElementById("comments_modal" + post._id).close()
+
 	};
 
 	const handleLikePost = () => {
-		if( isLiking ) return
+		if (isLiking) return
 		likePost()
 	};
 
@@ -226,5 +261,7 @@ const Post = ({post}) => {
 			</div>
 		</>
 	);
-};
+}
+
+
 export default Post;

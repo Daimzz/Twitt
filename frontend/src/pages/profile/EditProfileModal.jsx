@@ -33,7 +33,7 @@ const EditProfileModal = () => {
 				newPassword: "",
 			})
 		}
-	}, []);
+	}, [authUser]);
 
 	return (
 		<>
